@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Surya Pottelu — BIM & CAD Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0b0f14;
+    --bg2: #111720;
+    --line: #1e2d3d;
+    --accent: #4dd9ac;
+    --accent2: #f0a500;
+    --text: #d4dfe8;
+    --muted: #5a7080;
+    --white: #eef4f8;
+    --mono: 'DM Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+    --serif: 'Playfair Display', serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+    cursor: crosshair;
+    overflow-x: hidden;
+  }
+
+  /* Blueprint grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(77,217,172,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(77,217,172,.04) 1px, transparent 1px),
+      linear-gradient(rgba(77,217,172,.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(77,217,172,.015) 1px, transparent 1px);
+    background-size: 80px 80px, 80px 80px, 20px 20px, 20px 20px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 48px;
+    background: rgba(11,15,20,.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-logo {
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--accent);
+  }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color .3s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 48px 80px;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  /* Decorative corner marks */
+  .hero::before, .hero::after {
+    content: '';
+    position: absolute;
+    width: 60px; height: 60px;
+    border-color: var(--accent);
+    border-style: solid;
+    opacity: .4;
+  }
+  .hero::before { top: 100px; left: 32px; border-width: 2px 0 0 2px; }
+  .hero::after  { bottom: 60px; right: 32px; border-width: 0 2px 2px 0; }
+
+  .hero-inner { max-width: 1200px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    animation: fadeUp .8s ease both;
+  }
+  .hero-label::before {
+    content: '';
+    display: inline-block;
+    width: 32px; height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(56px, 7vw, 100px);
+    line-height: .95;
+    color: var(--white);
+    letter-spacing: 2px;
+    animation: fadeUp .8s .1s ease both;
+  }
+  h1 span { color: var(--accent); }
+
+  .hero-sub {
+    margin-top: 28px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+    max-width: 440px;
+    animation: fadeUp .8s .2s ease both;
+  }
+
+  .hero-cta {
+    margin-top: 48px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    animation: fadeUp .8s .3s ease both;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    background: transparent;
+    cursor: crosshair;
+    transition: all .3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: translateX(-100%);
+    transition: transform .3s ease;
+    z-index: -1;
+  }
+  .btn:hover { color: var(--bg); }
+  .btn:hover::before { transform: translateX(0); }
+  .btn-ghost { border-color: var(--muted); color: var(--muted); }
+  .btn-ghost::before { background: var(--muted); }
+  .btn-ghost:hover { color: var(--bg); }
+
+  /* HERO RIGHT — Blueprint visual */
+  .hero-visual {
+    position: relative;
+    animation: fadeUp .8s .2s ease both;
+  }
+  .blueprint-card {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .blueprint-card::before {
+    content: 'PORTFOLIO v1.0';
+    position: absolute;
+    top: 12px; right: 16px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    opacity: .5;
+  }
+  .bp-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .bp-row:last-child { border-bottom: none; }
+  .bp-key {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    min-width: 110px;
+  }
+  .bp-val {
+    color: var(--text);
+    font-size: 12px;
+  }
+  .bp-val.accent { color: var(--accent); }
+  .bp-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin: 2px 3px 2px 0;
+  }
+  .bp-tag.amber { border-color: var(--accent2); color: var(--accent2); }
+
+  /* STATUS indicator */
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+    margin-right: 8px;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(77,217,172,.4); }
+    50% { box-shadow: 0 0 0 6px rgba(77,217,172,0); }
+  }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; }
+  .section-wrap { max-width: 1200px; margin: 0 auto; padding: 100px 48px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 64px;
+  }
+  .section-num {
+    font-family: var(--display);
+    font-size: 72px;
+    color: var(--line);
+    line-height: 1;
+    user-select: none;
+  }
+  .section-title-group { border-left: 2px solid var(--accent); padding-left: 20px; }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-size: 42px;
+    color: var(--white);
+    letter-spacing: 2px;
+  }
+
+  /* EXPERIENCE */
+  .exp-block {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    padding: 36px 40px;
+    position: relative;
+    transition: border-color .3s;
+  }
+  .exp-block:hover { border-left-color: var(--accent2); }
+  .exp-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+  .exp-role {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--white);
+  }
+  .exp-company {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+  .exp-date {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 4px 14px;
+    white-space: nowrap;
+  }
+  .exp-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .exp-list li {
+    display: flex;
+    gap: 14px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    transition: color .3s;
+  }
+  .exp-list li:hover { color: var(--text); }
+  .exp-list li::before {
+    content: '›';
+    color: var(--accent);
+    font-size: 16px;
+    line-height: 1.4;
+    flex-shrink: 0;
+  }
+
+  /* PROJECTS */
+  .projects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .project-card {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .4s, transform .4s;
+    cursor: crosshair;
+  }
+  .project-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .4s ease;
+  }
+  .project-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+  .project-card:hover::after { transform: scaleX(1); }
+  .project-num {
+    font-family: var(--display);
+    font-size: 56px;
+    color: var(--line);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .project-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--white);
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .project-location {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 20px;
+  }
+  .project-desc {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .project-tags { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .ptag {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+
+  /* SKILLS */
+  .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .skill-category {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    padding: 28px;
+  }
+  .skill-cat-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .skill-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(30,45,61,.5);
+  }
+  .skill-item:last-child { border-bottom: none; }
+  .skill-name { font-size: 12px; color: var(--text); }
+  .skill-bar-wrap { width: 80px; height: 4px; background: var(--line); }
+  .skill-bar { height: 100%; background: var(--accent); transition: width 1s ease; }
+  .skill-bar.amber { background: var(--accent2); }
+
+  /* EDUCATION */
+  .edu-block {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    padding: 36px 40px;
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .edu-deg {
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  .edu-school { font-size: 13px; color: var(--accent); letter-spacing: 1px; }
+  .edu-year { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .edu-gpa {
+    margin-left: auto;
+    text-align: center;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 20px 32px;
+  }
+  .gpa-num {
+    font-family: var(--display);
+    font-size: 48px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .gpa-label { font-size: 10px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+  /* CERTS */
+  .certs-list { display: flex; flex-direction: column; gap: 16px; }
+  .cert-item {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: border-color .3s;
+  }
+  .cert-item:hover { border-color: var(--accent); }
+  .cert-icon {
+    width: 40px; height: 40px;
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent);
+    font-size: 18px;
+  }
+  .cert-name { font-size: 13px; color: var(--text); }
+  .cert-org { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* CONTACT */
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  .contact-info { display: flex; flex-direction: column; gap: 16px; }
+  .contact-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    padding: 18px 24px;
+    transition: border-color .3s;
+  }
+  .contact-row:hover { border-color: var(--accent); }
+  .contact-icon { color: var(--accent); font-size: 16px; }
+  .contact-key { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .contact-val { font-size: 13px; color: var(--text); }
+  .contact-big {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .contact-headline {
+    font-family: var(--display);
+    font-size: 44px;
+    line-height: 1;
+    color: var(--white);
+    letter-spacing: 2px;
+  }
+  .contact-headline span { color: var(--accent); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  footer span { color: var(--accent); }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 0;
+  }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .skills-grid { grid-template-columns: 1fr 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+    nav { padding: 16px 24px; }
+    .nav-links { gap: 20px; }
+    .section-wrap { padding: 72px 24px; }
+    .hero { padding: 100px 24px 64px; }
+  }
+  @media (max-width: 600px) {
+    .skills-grid { grid-template-columns: 1fr; }
+    .section-title { font-size: 32px; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SURYA.P</div>
+  <div class="nav-links">
+    <a href="#experience">Experience</a>
+    <a href="#projects">Projects</a>
+    <a href="#skills">Skills</a>
+    <a href="#education">Education</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-label">BIM Modeller &amp; CAD Designer</div>
+      <h1>SURYA<br/><span>POTTELU</span></h1>
+      <p class="hero-sub">
+        Civil Engineering graduate with deep expertise in REVIT, AutoCAD, and architectural documentation. Bridging technical precision with design vision across residential and commercial projects.
+      </p>
+      <div class="hero-cta">
+        <a href="#contact" class="btn">Get in Touch</a>
+        <a href="#projects" class="btn btn-ghost">View Projects</a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="blueprint-card">
+        <div class="bp-row">
+          <div class="bp-key">Status</div>
+          <div class="bp-val accent"><span class="status-dot"></span>Available for Work</div>
+        </div>
+        <div class="bp-row">
+          <div class="bp-key">Role</div>
+          <div class="bp-val">CAD Designer / BIM Modeller</div>
+        </div>
+        <div class="bp-row">
+          <div class="bp-key">Location</div>
+          <div class="bp-val">Vizianagaram, India</div>
+        </div>
+        <div class="bp-row">
+          <div class="bp-key">Experience</div>
+          <div class="bp-val accent">2+ Years</div>
+        </div>
+        <div class="bp-row">
+          <div class="bp-key">Degree</div>
+          <div class="bp-val">B.Tech — Civil Engineering</div>
+        </div>
+        <div class="bp-row">
+          <div class="bp-key">Core Skills</div>
+          <div class="bp-val">
+            <span class="bp-tag">REVIT</span>
+            <span class="bp-tag">AutoCAD</span>
+            <span class="bp-tag amber">STAAD Pro</span>
+            <span class="bp-tag">SketchUp</span>
+          </div>
+        </div>
+        <div class="bp-row">
+          <div class="bp-key">Contact</div>
+          <div class="bp-val">surya.957334@gmail.com</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <div class="section-num">01</div>
+      <div class="section-title-group">
+        <div class="section-label">Work History</div>
+        <div class="section-title">EXPERIENCE</div>
+      </div>
+    </div>
+
+    <div class="exp-block reveal">
+      <div class="exp-header">
+        <div>
+          <div class="exp-role">CAD Designer</div>
+          <div class="exp-company">LUXLOGIX</div>
+        </div>
+        <div class="exp-date">09 / 2023 — Present</div>
+      </div>
+      <ul class="exp-list">
+        <li>Created detailed 2D and 3D drawings using AutoCAD for residential and commercial projects, ensuring technical accuracy and adherence to client specifications.</li>
+        <li>Drafted architectural floor plans, elevations, and isometric views based on engineering sketches and design briefs.</li>
+        <li>Collaborated with architects and engineers to revise drawings and implement design changes quickly and effectively.</li>
+        <li>Conducted site measurements and integrated field data into updated drawing sets.</li>
+        <li>Prepared construction documentation and ensured compliance with building codes and industry standards.</li>
+        <li>Optimised drawing templates, CAD blocks, and attributes to improve efficiency across the drafting process.</li>
+        <li>Supported design team with visual renderings and layout concepts to present to clients.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <div class="section-num">02</div>
+      <div class="section-title-group">
+        <div class="section-label">Notable Work</div>
+        <div class="section-title">PROJECTS</div>
+      </div>
+    </div>
+
+    <div class="projects-grid">
+      <div class="project-card reveal">
+        <div class="project-num">01</div>
+        <div class="project-title">Improved Efficiency Factors for Shear Capacity Prediction of RC Deep Beams</div>
+        <div class="project-location">Research / Structural Analysis</div>
+        <div class="project-desc">
+          Analysed 200+ experimental RC deep beam datasets using linear and non-linear regression. Developed improved efficiency factor models compared against ACI and AASHTO design codes, achieving higher accuracy with less conservative results.
+        </div>
+        <div class="project-tags">
+          <span class="ptag">MS Excel</span>
+          <span class="ptag">Curve Expert</span>
+          <span class="ptag">Regression Analysis</span>
+          <span class="ptag">ACI Code</span>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">02</div>
+        <div class="project-title">Talampally Palazzo Residential Building</div>
+        <div class="project-location">Bidar / Interior Design</div>
+        <div class="project-desc">
+          Designed functional and aesthetic lighting layouts for residential interiors. Created AutoCAD lighting plans coordinated with architects and the electrical team. Developed Excel-based BOQ automation to streamline quantity take-offs and cost estimations.
+        </div>
+        <div class="project-tags">
+          <span class="ptag">AutoCAD</span>
+          <span class="ptag">Lighting Design</span>
+          <span class="ptag">BOQ / Excel</span>
+          <span class="ptag">Cost Estimation</span>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">03</div>
+        <div class="project-title">Analysis and Design of Truss Bridge</div>
+        <div class="project-location">Structural Engineering</div>
+        <div class="project-desc">
+          Structural analysis and design of a truss bridge, covering load calculations, member sizing, and compliance with engineering standards.
+        </div>
+        <div class="project-tags">
+          <span class="ptag">Structural Analysis</span>
+          <span class="ptag">STAAD Pro</span>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">04</div>
+        <div class="project-title">Analysis of Cantilever Beam and UDL</div>
+        <div class="project-location">Structural Engineering</div>
+        <div class="project-desc">
+          Performed bending moment and shear force analysis on a cantilever beam under uniformly distributed loading conditions, validating theoretical results with computational outputs.
+        </div>
+        <div class="project-tags">
+          <span class="ptag">Beam Analysis</span>
+          <span class="ptag">UDL</span>
+          <span class="ptag">Structural Design</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <div class="section-num">03</div>
+      <div class="section-title-group">
+        <div class="section-label">Technical Proficiency</div>
+        <div class="section-title">SKILLS</div>
+      </div>
+    </div>
+
+    <div class="skills-grid">
+      <div class="skill-category reveal">
+        <div class="skill-cat-title">BIM &amp; CAD</div>
+        <div class="skill-item"><span class="skill-name">REVIT (BIM)</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:85%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">AutoCAD 2025</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:92%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">SketchUp</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:55%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">STAAD Pro V8i</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:75%"></div></div></div>
+      </div>
+
+      <div class="skill-category reveal">
+        <div class="skill-cat-title">Software &amp; Tools</div>
+        <div class="skill-item"><span class="skill-name">MS Excel (BOQ)</span><div class="skill-bar-wrap"><div class="skill-bar amber" style="width:88%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">MS Office Suite</span><div class="skill-bar-wrap"><div class="skill-bar amber" style="width:82%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">Curve Expert</span><div class="skill-bar-wrap"><div class="skill-bar amber" style="width:70%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">Python (Basics)</span><div class="skill-bar-wrap"><div class="skill-bar amber" style="width:45%"></div></div></div>
+      </div>
+
+      <div class="skill-category reveal">
+        <div class="skill-cat-title">Domain Knowledge</div>
+        <div class="skill-item"><span class="skill-name">Architectural Drawings</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:90%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">Rate Analysis</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:80%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">Interior Design</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:72%"></div></div></div>
+        <div class="skill-item"><span class="skill-name">Construction Docs</span><div class="skill-bar-wrap"><div class="skill-bar" style="width:85%"></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <div class="section-num">04</div>
+      <div class="section-title-group">
+        <div class="section-label">Academic Background</div>
+        <div class="section-title">EDUCATION</div>
+      </div>
+    </div>
+
+    <div class="edu-block reveal">
+      <div>
+        <div class="edu-deg">B.Tech — Civil Engineering</div>
+        <div class="edu-school">MVGR College of Engineering, Vizianagaram</div>
+        <div class="edu-year">August 2019 – May 2023</div>
+      </div>
+      <div class="edu-gpa">
+        <div class="gpa-num">7.11</div>
+        <div class="gpa-label">CGPA</div>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="reveal">
+      <div class="skill-cat-title" style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;">Certifications</div>
+      <div class="certs-list">
+        <div class="cert-item">
+          <div class="cert-icon">✦</div>
+          <div>
+            <div class="cert-name">Remote Sensing, GIS &amp; Global Navigation Satellite System</div>
+            <div class="cert-org">Indian Space Research Organisation (ISRO)</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">▦</div>
+          <div>
+            <div class="cert-name">Analysis and Design of Truss Bridge</div>
+            <div class="cert-org">Structural Engineering Certificate</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">◈</div>
+          <div>
+            <div class="cert-name">Analysis of Cantilever Beam and UDL</div>
+            <div class="cert-org">Structural Analysis Certificate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-wrap">
+    <div class="section-header reveal">
+      <div class="section-num">05</div>
+      <div class="section-title-group">
+        <div class="section-label">Get in Touch</div>
+        <div class="section-title">CONTACT</div>
+      </div>
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-big reveal">
+        <div class="contact-headline">LET'S BUILD<br/><span>TOGETHER.</span></div>
+        <p style="color:var(--muted);font-size:13px;line-height:1.7;max-width:340px;">
+          Open to BIM modelling, CAD drafting, and architectural documentation roles. Let's connect and bring your vision to life with precision.
+        </p>
+        <a href="mailto:surya.957334@gmail.com" class="btn">Send Email</a>
+      </div>
+
+      <div class="contact-info reveal">
+        <div class="contact-row">
+          <div class="contact-icon">✉</div>
+          <div>
+            <div class="contact-key">Email</div>
+            <div class="contact-val">surya.957334@gmail.com</div>
+          </div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-icon">☎</div>
+          <div>
+            <div class="contact-key">Phone</div>
+            <div class="contact-val">+91 9573347887</div>
+          </div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-icon">⌖</div>
+          <div>
+            <div class="contact-key">Location</div>
+            <div class="contact-val">Vizianagaram, Andhra Pradesh, India</div>
+          </div>
+        </div>
+        <div class="contact-row">
+          <div class="contact-icon">in</div>
+          <div>
+            <div class="contact-key">LinkedIn</div>
+            <div class="contact-val">linkedin.com/in/surya-pottelu</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>© 2024 <span>Surya Venkata Atchut Kumar Pottelu</span>. All rights reserved.</div>
+  <div>BIM Modeller &amp; CAD Designer — Vizianagaram, India</div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Skill bars animate on scroll
+  const skillBars = document.querySelectorAll('.skill-bar');
+  const skillObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const target = e.target;
+        const finalW = target.style.width;
+        target.style.width = '0%';
+        setTimeout(() => { target.style.width = finalW; }, 200);
+        skillObserver.unobserve(target);
+      }
+    });
+  }, { threshold: 0.5 });
+  skillBars.forEach(b => skillObserver.observe(b));
+</script>
+</body>
+</html>
